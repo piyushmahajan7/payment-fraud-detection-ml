@@ -1,0 +1,318 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Follow the Money | Fraud Detection</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body data-state="idle">
+
+    <div class="bg" aria-hidden="true"></div>
+
+    <main class="app">
+
+        <header class="head">
+    <h1>See Beyond the Transaction.</h1>
+    <p>
+        Evaluate financial transactions with machine learning.
+        Detect suspicious activity, assess fraud probability,
+        and gain insights into transaction patterns.
+    </p>
+</header>
+
+        <div class="layout">
+
+            <!-- TRANSACTION INPUT FORM -->
+            <form id="form" class="panel" novalidate>
+
+                <!-- SAMPLE PRESETS -->
+                <div class="presets">
+                    <span>Try</span>
+
+                    <button
+                        type="button"
+                        class="pre"
+                        data-preset="safe"
+                    >
+                        Everyday payment
+                    </button>
+
+                    <button
+                        type="button"
+                        class="pre"
+                        data-preset="fraud"
+                    >
+                        Suspicious transfer
+                    </button>
+                </div>
+
+                <!-- TRANSACTION TYPE -->
+                <fieldset class="seg" aria-label="Transaction type">
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="type"
+                            value="PAYMENT"
+                            checked
+                        >
+                        <span>Payment</span>
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="type"
+                            value="TRANSFER"
+                        >
+                        <span>Transfer</span>
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="type"
+                            value="CASH_OUT"
+                        >
+                        <span>Cash out</span>
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="type"
+                            value="CASH_IN"
+                        >
+                        <span>Cash in</span>
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="type"
+                            value="DEBIT"
+                        >
+                        <span>Debit</span>
+                    </label>
+
+                </fieldset>
+
+                <!-- AMOUNT AND TIME -->
+                <div class="row">
+
+                    <label class="f">
+                        <span>Amount</span>
+
+                        <input
+                            name="amount"
+                            type="number"
+                            min="0"
+                            step="any"
+                            inputmode="decimal"
+                            placeholder="0.00"
+                            required
+                        >
+                    </label>
+
+                    <label class="f">
+                        <span>Time step (hour)</span>
+
+                        <input
+                            name="step"
+                            type="number"
+                            min="1"
+                            max="743"
+                            step="1"
+                            inputmode="numeric"
+                            placeholder="e.g. 12"
+                            required
+                        >
+                    </label>
+
+                </div>
+
+                <!-- SENDER DETAILS -->
+                <fieldset class="party">
+
+                    <legend>Sender</legend>
+
+                    <div class="row">
+
+                        <label class="f">
+                            <span>Balance before</span>
+
+                            <input
+                                name="oldbalanceOrg"
+                                type="number"
+                                min="0"
+                                step="any"
+                                inputmode="decimal"
+                                placeholder="0.00"
+                                required
+                            >
+                        </label>
+
+                        <label class="f">
+                            <span>Balance after</span>
+
+                            <input
+                                name="newbalanceOrig"
+                                type="number"
+                                min="0"
+                                step="any"
+                                inputmode="decimal"
+                                placeholder="0.00"
+                                required
+                            >
+                        </label>
+
+                    </div>
+
+                </fieldset>
+
+                <!-- RECIPIENT DETAILS -->
+                <fieldset class="party">
+
+                    <legend>Recipient</legend>
+
+                    <div class="row">
+
+                        <label class="f">
+                            <span>Balance before</span>
+
+                            <input
+                                name="oldbalanceDest"
+                                type="number"
+                                min="0"
+                                step="any"
+                                inputmode="decimal"
+                                placeholder="0.00"
+                                required
+                            >
+                        </label>
+
+                        <label class="f">
+                            <span>Balance after</span>
+
+                            <input
+                                name="newbalanceDest"
+                                type="number"
+                                min="0"
+                                step="any"
+                                inputmode="decimal"
+                                placeholder="0.00"
+                                required
+                            >
+                        </label>
+
+                    </div>
+
+                </fieldset>
+
+                <p
+                    id="err"
+                    class="err"
+                    role="alert"
+                    hidden
+                ></p>
+
+                <!-- PREDICTION BUTTON -->
+                <button
+                    id="scan"
+                    class="scan"
+                    type="submit"
+                >
+                    Scan transaction
+                </button>
+
+            </form>
+
+            <!-- VISUALIZATION AND PREDICTION -->
+            <section class="stage" id="stage">
+
+                <canvas
+                    id="flow"
+                    aria-label="Animated view of money moving from the sender to the recipient"
+                ></canvas>
+
+                <div class="readout" aria-live="polite">
+
+                    <div class="rw">
+
+                        <svg
+                            class="ring"
+                            viewBox="0 0 120 120"
+                            aria-hidden="true"
+                        >
+
+                            <circle
+                                class="t"
+                                cx="60"
+                                cy="60"
+                                r="52"
+                                pathLength="100"
+                            />
+
+                            <circle
+                                id="arc"
+                                class="a"
+                                cx="60"
+                                cy="60"
+                                r="52"
+                                pathLength="100"
+                            />
+
+                        </svg>
+
+                        <div id="score" class="score">–</div>
+
+                    </div>
+
+                    <div>
+
+                        <div id="vt" class="vt">
+                            Ready to scan
+                        </div>
+
+                        <p id="note" class="note">
+                            Change any number and the accounts update live.
+                            Press "Scan transaction" to get the model's verdict.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div id="chips" class="chips"></div>
+
+            </section>
+
+        </div>
+
+        <footer>
+            <p>
+                Educational demonstration using a synthetic transaction dataset.
+                Predictions are not real-world financial decisions.
+            </p>
+        </footer>
+
+    </main>
+
+    <script src="script.js"></script>
+
+</body>
+</html>

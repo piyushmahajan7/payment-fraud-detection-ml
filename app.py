@@ -21,7 +21,12 @@ app.add_middleware(
 ) 
 
 # Load trained ML pipeline
-model = joblib.load("models/fraud_detection_model.pkl")
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_PATH = BASE_DIR / "models" / "fraud_detection_model.pkl"
+
+model = joblib.load(MODEL_PATH)
 
 
 # Define input data structure
